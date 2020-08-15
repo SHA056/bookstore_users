@@ -7,11 +7,12 @@ import (
 	"github.com/SHA056/bookstore_users/utils/errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 )
 
 func CreateUser(c *gin.Context) {
 	var user users.User
-	fmt.Println(user)
+	//fmt.Println(user)
 
 	//// Any request that comes through gets saved into the bytes object
 	//bytes, err := ioutil.ReadAll(c.Request.Body)
@@ -40,9 +41,6 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	fmt.Println("MARK 2>>>>> Marshalling completed")
-	//fmt.Println(string(bytes))
-
 	// Sending to service for processing
 	fmt.Println("Sending to service for processing")
 	result, saveError := services.CreateUser(user)
@@ -53,15 +51,28 @@ func CreateUser(c *gin.Context) {
 		fmt.Println(saveError)
 		return
 	}
-	fmt.Println("MARK 4>>>>> Returning JSON")
+
 	c.JSON(http.StatusCreated,result)
 }
 
 func GetUser(c *gin.Context) {
-	c.String(http.StatusNotImplemented,"not yet")
+	userId, userErr := strconv.ParseInt(c.Param("user_id"),10,64)
+	if userErr != nil {
+		err := errors.NewBadRequestError("user id should be a number")
+		c.JSON(err.Status,err)
+		return
+	}
+
+	user, getError := services.GetUser(userId)
+	if getError != nil {
+		c.JSON(getError.Status,getError)
+		fmt.Println(getError)
+		return
+	}
+	c.JSON(http.StatusOK,user)
 }
 
 //func SearchUser(c *gin.Context) {
-//	c.String(http.StatusNotImplemented,"not yet")
+//	c.String(http.StatusNotImplemented,"not yet")Status
 //}
 //
